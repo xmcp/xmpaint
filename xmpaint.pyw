@@ -1,10 +1,4 @@
 #coding=utf-8
-import sys
-if sys.version[0]=='2':
-    pass
-    #os.system('start c:/python34/pythonw.exe '+sys.argv[0])
- #   sys.exit(-1)
-
 from tkinter import *
 from tkinter import font
 from tkinter import messagebox
@@ -42,12 +36,12 @@ def buildraw(*_):
         splited=data.split()
         for now in range(len(splited)):
             splited[now]=splited[now].replace('\\',' ').replace('"','\\"')
-        if len(splited)==3:
+        if len(splited)>=3:
             fstr='"%s"->"%s"'%tuple(splited[:2]) if dir else '"%s"--"%s"'%tuple(splited[:2])
             if [splited[0],splited[1]] in hllines:
-                lines.append(fstr+'[label="%s",color="red",style="bold,filled"];\n'%splited[2])
+                lines.append(fstr+'[label="%s",color="red",style="bold,filled"];\n'%' '.join(splited[2:]))
             else:
-                lines.append(fstr+'[label="%s"];\n'%splited[2])
+                lines.append(fstr+'[label="%s"];\n'%' '.join(splited[2:]))
         elif len(splited)==2:
             fstr='"%s"->"%s"'%tuple(splited) if dir else '"%s"--"%s"'%tuple(splited)
             if [splited[0],splited[1]] in hllines:
