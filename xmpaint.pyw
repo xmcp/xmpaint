@@ -19,6 +19,12 @@ def buildraw(*_):
     
     #interpret
     tk.title('Interpreting data...')
+
+    nicks={k.replace('\\',' ').replace('"','\\"'):v for x in nickin.get(1.0,END).split('\n') if x for k,_,v in [x.partition(' ')]}
+
+    def getnick(name,isedge):
+        return nicks.get(('|' if isedge else '')+name,name)
+    
     for data in hlin.get(1.0,END).split('\n'):
         if data:
             splited=data.split(' ')
@@ -26,31 +32,34 @@ def buildraw(*_):
                 hllines.append(splited)
             elif len(splited)==1:
                 lines.append('"%s"[color="black",fillcolor="greenyellow",style="bold,filled"];\n'%\
-                    splited[0].replace('\\',' ').replace('"','\\"'))
+                    getnick(splited[0].replace('\\',' ').replace('"','\\"'),isedge=False))
             else:
-                messagebox.showerror('Error','Syntax error in highlight "%s"'%data)
+                messagebox.showerror('Error','Syntax error in highlight "%s"'%data)    
     
     for data in textin.get(1.0,END).split('\n'):
         if not data:
             continue
         splited=data.split()
-        for now in range(len(splited)):
-            splited[now]=splited[now].replace('\\',' ').replace('"','\\"')
+        if len(splited)<2:
+            messagebox.showerror('Error','Syntax error in line "%s"'%data)
+            return
+        elif len(splited)>3:
+            splited=[splited[0],splited[1],' '.join(splited[2:])]
+        
+        disp=[getnick(item.replace('\\',' ').replace('"','\\"'),isedge=now==2) for now,item in enumerate(splited)]
         if len(splited)>=3:
-            fstr='"%s"->"%s"'%tuple(splited[:2]) if dir else '"%s"--"%s"'%tuple(splited[:2])
+            fstr='"%s"->"%s"'%tuple(disp[:2]) if dir else '"%s"--"%s"'%tuple(disp[:2])
             if [splited[0],splited[1]] in hllines:
-                lines.append(fstr+'[label="%s",color="red",style="bold,filled"];\n'%' '.join(splited[2:]))
+                lines.append(fstr+'[label="%s",color="red",style="bold,filled"];\n'%' '.join(disp[2:]))
             else:
-                lines.append(fstr+'[label="%s"];\n'%' '.join(splited[2:]))
+                lines.append(fstr+'[label="%s"];\n'%' '.join(disp[2:]))
         elif len(splited)==2:
-            fstr='"%s"->"%s"'%tuple(splited) if dir else '"%s"--"%s"'%tuple(splited)
+            fstr='"%s"->"%s"'%tuple(disp) if dir else '"%s"--"%s"'%tuple(disp)
             if [splited[0],splited[1]] in hllines:
                 lines.append(fstr+'[color="red",style="bold,filled"];\n')
             else:
                 lines.append(fstr+';\n')
-        else:
-            messagebox.showerror('Error','Syntax error in line "%s"'%data)
-            return
+            
             
 
     #write
@@ -162,23 +171,24 @@ shouldCleanup=StringVar(value='yes')
 building=False
 
 #text in
-textframe=Frame(tk)
-textframe.grid(row=0,column=0,sticky='NSWE')
-textframe.columnconfigure(0,weight=1)
+textbook=Notebook(tk)
+textbook.grid(row=0,column=0,columnspan=2,sticky='NSWE')
+textbook.rowconfigure(0,weight=1)
+textbook.columnconfigure(0,weight=1)
 
-textin=Text(textframe,font='Consolas',width=20,bg='#CCCCFF')
-textin.grid(row=0,column=0,sticky='NSWE')
-textin_sbar=Scrollbar(textframe,orient=VERTICAL,command=textin.yview)
-textin_sbar.grid(row=0,column=1,sticky='NS')
-textin['yscrollcommand']=textin_sbar.set
-textframe.rowconfigure(0,weight=1)
-
-hlin=Text(textframe,font='Consolas -13',width=20,height=9,bg='#FFCCCC')
-hlin.grid(row=1,column=0,sticky='NSWE')
-hlin_sbar=Scrollbar(textframe,orient=VERTICAL,command=hlin.yview)
-hlin_sbar.grid(row=1,column=1,sticky='NS')
-hlin['yscrollcommand']=hlin_sbar.set
-
+for name,title,color in (('textin',' 邻接表 ','#ccccff'),('hlin',' 高亮 ','#ffffcc'),('nickin',' 别名 ','#ccffcc')):
+    textframe=Frame(textbook)
+    textbook.add(textframe,text=title)
+    textframe.rowconfigure(0,weight=1)
+    textframe.columnconfigure(0,weight=1)
+    
+    textin_=Text(textframe,font='Consolas',width=20,bg=color)
+    globals()[name]=textin_
+    textin_.grid(row=0,column=0,sticky='NSWE')
+    textin_sbar=Scrollbar(textframe,orient=VERTICAL,command=textin_.yview)
+    textin_sbar.grid(row=0,column=1,sticky='NS')
+    textin_['yscrollcommand']=textin_sbar.set
+    
 #canvas
 imgframe=Frame(tk)
 imgframe.grid(row=0,column=2,rowspan=2,sticky='NSWE')
