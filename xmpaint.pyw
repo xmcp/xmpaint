@@ -158,23 +158,41 @@ def moving(event):
     canvas.xview_scroll(movex-event.x,'units')
     canvas.yview_scroll(movey-event.y,'units')
     movex,movey=event.x,event.y
-
+    
 tk=Tk()
 tk.geometry('900x600')
-tk.title('XMPaint')
+tk.title('xmPaint')
 tk.rowconfigure(0,weight=1)
-tk.columnconfigure(2,weight=1)
+tk.columnconfigure(1,weight=1)
 tk.bind_all('<F5>',build)
 compilervar=StringVar(value='dot')
 directed=StringVar(value='yes')
 shouldCleanup=StringVar(value='yes')
 building=False
+sidebar_visible=True
+
+def switcher(_):
+    global sidebar_visible
+    sidebar_visible=not sidebar_visible
+    
+    if sidebar_visible:
+        sidebar.grid(row=0,column=0,sticky='NS')
+        tk.title('xmPaint')
+    else:
+        sidebar.grid_forget()
+        tk.title('xmPaint （按 Alt+` 显示边栏）')
 
 #text in
-textbook=Notebook(tk)
+sidebar=Frame(tk)
+sidebar.grid(row=0,column=0,sticky='NS')
+sidebar.rowconfigure(0,weight=1)
+
+textbook=Notebook(sidebar)
 textbook.grid(row=0,column=0,columnspan=2,sticky='NSWE')
 textbook.rowconfigure(0,weight=1)
 textbook.columnconfigure(0,weight=1)
+
+tk.bind('<Alt-`>',switcher)
 
 selector=lambda obj,ind:lambda _:obj.select(ind)
 for ind,(name,title,color) in enumerate((
@@ -197,7 +215,7 @@ for ind,(name,title,color) in enumerate((
     
 #canvas
 imgframe=Frame(tk)
-imgframe.grid(row=0,column=2,rowspan=2,sticky='NSWE')
+imgframe.grid(row=0,column=1,sticky='NSWE')
 imgframe.grid_columnconfigure(0,weight=1)
 imgframe.grid_rowconfigure(0,weight=1)
 
@@ -220,7 +238,7 @@ canvas.bind("<Button-1>", startmove)
 canvas.bind("<B1-Motion>", moving)
 
 #config frame
-frame=Frame(tk)
+frame=Frame(sidebar)
 frame.grid(row=1,column=0,columnspan=2)
 Combobox(frame,textvariable=compilervar,values=('dot','fdp','sfdp','circo'),width=10)\
     .grid(row=0,column=0,pady=2,padx=2)
