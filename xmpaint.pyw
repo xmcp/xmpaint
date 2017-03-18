@@ -111,8 +111,8 @@ def buildraw(*_):
     imgheight=img.height()
     tk.title('Redrawing canvas...')
     canvas['scrollregion']=(
-        midwidth-imgwidth/2-20,midheight-imgheight/2-20,
-        midwidth+imgwidth/2+20,midheight+imgheight/2+20)
+        midwidth-imgwidth/2-10,midheight-imgheight/2-10,
+        midwidth+imgwidth/2+10,midheight+imgheight/2+10)
     canvasimg=canvas.create_image(\
         midwidth,midheight,anchor=CENTER,image=img)
 
@@ -137,7 +137,7 @@ def build(*_):
             messagebox.showerror('Error','Unhandled exception: %r'%e)
             raise
         finally:
-            tk.title('XMPaint')
+            tk.title('xmPaint')
             building=False
             buildbtn['state']='normal'
 
