@@ -138,7 +138,7 @@ def buildraw(*_):
         midwidth,midheight,anchor=CENTER,image=img)
 
     #cleanup
-    if shouldCleanup.get()=='yes':
+    if should_cleanup.get()=='yes':
         tk.title('Cleaning up...')
         try:
             os.remove('output/out.gv')
@@ -188,10 +188,74 @@ tk.columnconfigure(1,weight=1)
 tk.bind_all('<F5>',build)
 compilervar=StringVar(value='dot')
 directed=StringVar(value='yes')
-shouldCleanup=StringVar(value='yes')
+should_cleanup=StringVar(value='yes')
+watch_clipboard=StringVar(value='yes')
+
 building=False
 sidebar_visible=True
 
+def clear(*_):
+    for obj in (textin,hlin,nickin):
+        obj.delete('1.0',END)
+
+class ClipWatcher:
+    def __init__(self):
+        self.last=None
+        self.out=[textin,hlin,nickin]
+    
+    def __call__(self,*_):
+        if watch_clipboard.get()!='yes':
+            return
+        try:
+            txt=tk.clipboard_get()
+        except:
+            return
+        if _ is not None and len(txt)>100000 or hash(txt)==self.last or '$$' not in txt:
+            return
+        self.paste(txt)
+        
+    def forcepaste(self,*_):
+        try:
+            txt=tk.clipboard_get()
+        except Exception as e:
+            messagebox.showerror('Error','Failed to get clipboard content: %r'%e)
+        else:
+            self.paste(txt)
+        
+    def paste(self,txt):
+        self.last=hash(txt)
+        block=None
+        for line in txt.split('\n'):
+            cmd=line.strip().partition(' ')
+            
+            if cmd[0]=='$$!': #edge
+                self.out[0].insert(END,'\n'+cmd[2])
+            elif cmd[0]=='$$@': #highlight
+                self.out[1].insert(END,'\n'+cmd[2])
+            elif cmd[0]=='$$#': #nickname
+                self.out[2].insert(END,'\n'+cmd[2])
+            
+            elif cmd[0]=='$$!clear':
+                self.out[0].delete('1.0',END)
+            elif cmd[0]=='$$@clear':
+                self.out[1].delete('1.0',END)
+            elif cmd[0]=='$$#clear':
+                self.out[2].delete('1.0',END)
+            elif cmd[0]=='$$clear':
+                clear()
+            
+            elif cmd[0]=='$$!block':
+                block=0
+            elif cmd[0]=='$$@block':
+                block=1
+            elif cmd[0]=='$$#block':
+                block=2
+            elif cmd[0]=='$$end':
+                block=None
+                
+            elif block is not None:
+                self.out[block].insert(END,'\n'+''.join(cmd))
+              
 def switcher(_):
     global sidebar_visible
     sidebar_visible=not sidebar_visible
@@ -270,9 +334,15 @@ buildbtn.grid(row=0,column=2)
 
 frame2=Frame(sidebar)
 frame2.grid(row=2,column=0,columnspan=2)
-Checkbutton(frame2,text='清理临时文件',variable=shouldCleanup,onvalue='yes',offvalue='no')\
+Checkbutton(frame2,text='清理临时文件',variable=should_cleanup,onvalue='yes',offvalue='no')\
     .grid(row=0,column=0)
-Checkbutton(frame2,text='监视剪切板')\
+Checkbutton(frame2,text='监视剪切板',variable=watch_clipboard,onvalue='yes',offvalue='no')\
     .grid(row=0,column=1) #todo
 
+clipwatcher=ClipWatcher()
+tk.bind('<FocusIn>',clipwatcher)
+tk.bind('<Alt-q>',clear)
+tk.bind('<Alt-Q>',clear)
+tk.bind('<Alt-w>',clipwatcher.forcepaste) # force paste
+tk.bind('<Alt-W>',clipwatcher.forcepaste) # force paste
 mainloop()
