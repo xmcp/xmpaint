@@ -8,6 +8,51 @@ import threading
 import time
 import os
 
+class GraphWiz:
+    @staticmethod
+    def esc(x):
+        return x.replace('\\',' ').replace('"','\\"')
+
+    def __init__(self,directed,nicktxt):
+        self.directed=directed
+        self.output=['%s A{\n'%('digraph' if directed else 'graph'),'node[fontname="黑体"]; edge[fontname="黑体"];']
+        self.edge_hl=set()
+        self.nicks={self.esc(k):v for x in nicktxt.split('\n') if x for k,_,v in [x.partition(' ')]}
+    
+    def getnick(self,name,isedge):
+        name=self.esc(name)
+        return self.nicks.get(('|' if isedge else '')+name,name)
+    
+    def highlight_edge(self,a,b):
+        a=self.getnick(a,isedge=False)
+        b=self.getnick(b,isedge=False)
+        self.edge_hl.add((a,b))
+        if not self.directed:
+            self.edge_hl.add((b,a))
+            
+    def highlight_node(self,a):
+        self.output.append('"%s"[color="black",fillcolor="greenyellow",style="bold,filled"];\n'%\
+            self.getnick(a,isedge=False))
+            
+    def addedge(self,a,b,label=None):
+        a=self.getnick(a,isedge=False)
+        b=self.getnick(b,isedge=False)
+        fstr='"%s"->"%s"'%(a,b) if self.directed else '"%s"--"%s"'%(a,b)
+        if label:
+            label=self.getnick(label,isedge=True)
+            if (a,b) in self.edge_hl:
+                self.output.append(fstr+'[label="%s",color="red",style="bold,filled"];\n'%label)
+            else:
+                self.output.append(fstr+'[label="%s"];\n'%label)
+        else:
+            if (a,b) in self.edge_hl:
+                self.output.append(fstr+'[color="red",style="bold,filled"];\n')
+            else:
+                self.output.append(fstr+';\n')
+
+    def result(self):
+        return ''.join(self.output+['}'])
+                
 def buildraw(*_):
     compiler=compilervar.get()
     lines=[]
@@ -15,24 +60,18 @@ def buildraw(*_):
     global img
     global canvasimg
     starttime=time.time()
-    dir=directed.get()=='yes'
     
     #interpret
     tk.title('Interpreting data...')
-
-    nicks={k.replace('\\',' ').replace('"','\\"'):v for x in nickin.get(1.0,END).split('\n') if x for k,_,v in [x.partition(' ')]}
-
-    def getnick(name,isedge):
-        return nicks.get(('|' if isedge else '')+name,name)
+    gw=GraphWiz(directed.get()=='yes',nickin.get(1.0,END))
     
     for data in hlin.get(1.0,END).split('\n'):
         if data:
             splited=data.split(' ')
             if len(splited)==2:
-                hllines.append(splited)
+                gw.highlight_edge(*splited)
             elif len(splited)==1:
-                lines.append('"%s"[color="black",fillcolor="greenyellow",style="bold,filled"];\n'%\
-                    getnick(splited[0].replace('\\',' ').replace('"','\\"'),isedge=False))
+                gw.highlight_node(splited[0])
             else:
                 messagebox.showerror('Error','Syntax error in highlight item "%s"'%data)    
     
@@ -45,33 +84,15 @@ def buildraw(*_):
             return
         elif len(splited)>3:
             splited=[splited[0],splited[1],' '.join(splited[2:])]
-        
-        disp=[getnick(item.replace('\\',' ').replace('"','\\"'),isedge=now==2) for now,item in enumerate(splited)]
-        if len(splited)>=3:
-            fstr='"%s"->"%s"'%tuple(disp[:2]) if dir else '"%s"--"%s"'%tuple(disp[:2])
-            if [splited[0],splited[1]] in hllines:
-                lines.append(fstr+'[label="%s",color="red",style="bold,filled"];\n'%' '.join(disp[2:]))
-            else:
-                lines.append(fstr+'[label="%s"];\n'%' '.join(disp[2:]))
-        elif len(splited)==2:
-            fstr='"%s"->"%s"'%tuple(disp) if dir else '"%s"--"%s"'%tuple(disp)
-            if [splited[0],splited[1]] in hllines:
-                lines.append(fstr+'[color="red",style="bold,filled"];\n')
-            else:
-                lines.append(fstr+';\n')
-            
-            
-
+        gw.addedge(*splited)
+    
     #write
+    tk.title('Writing graph file...')
     if not os.path.exists('output'):
         os.mkdir('output')
-    tk.title('Writing graph file...')
     try:
-        with open('output/out.gv','w') as f:
-            f.write('%s A{\n'%('digraph' if dir else 'graph'))
-            for a in lines:
-                f.write(a)
-            f.write('}')
+        with open('output/out.gv','w',encoding='utf-8') as f:
+            f.write(gw.result())
     except Exception as e:
         messagebox.showerror('Error','Can\'t write file: %s'%e)
         return
@@ -238,15 +259,20 @@ canvas.bind("<Button-1>", startmove)
 canvas.bind("<B1-Motion>", moving)
 
 #config frame
-frame=Frame(sidebar)
-frame.grid(row=1,column=0,columnspan=2)
-Combobox(frame,textvariable=compilervar,values=('dot','fdp','sfdp','circo'),width=10)\
-    .grid(row=0,column=0,pady=2,padx=2)
-buildbtn=Button(frame,text='生成 (F5)',command=build)
-buildbtn.grid(row=0,column=1)
-Checkbutton(frame,text='清理临时文件',variable=shouldCleanup,onvalue='yes',offvalue='no')\
-    .grid(row=2,column=0)
-Checkbutton(frame,text='有向图',variable=directed,onvalue='yes',offvalue='no')\
-    .grid(row=2,column=1)
+frame1=Frame(sidebar)
+frame1.grid(row=1,column=0,columnspan=2)
+Checkbutton(frame1,text='有向图',variable=directed,onvalue='yes',offvalue='no')\
+    .grid(row=0,column=0)
+Combobox(frame1,textvariable=compilervar,values=('dot','fdp','sfdp','circo'),width=5)\
+    .grid(row=0,column=1,padx=2)
+buildbtn=Button(frame1,text='生成 (F5)',command=build,width=8)
+buildbtn.grid(row=0,column=2)
+
+frame2=Frame(sidebar)
+frame2.grid(row=2,column=0,columnspan=2)
+Checkbutton(frame2,text='清理临时文件',variable=shouldCleanup,onvalue='yes',offvalue='no')\
+    .grid(row=0,column=0)
+Checkbutton(frame2,text='监视剪切板')\
+    .grid(row=0,column=1) #todo
 
 mainloop()
