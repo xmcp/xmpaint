@@ -321,6 +321,8 @@ imgv.grid(column=1,row=0,sticky='NS')
 movex,movey=0,0
 canvas.bind("<Button-1>", startmove)
 canvas.bind("<B1-Motion>", moving)
+canvas.bind('<Double-Button-2>',switcher)
+canvas.bind('<Double-Button-3>',switcher)
 
 #config frame
 frame1=Frame(sidebar)
