@@ -338,7 +338,7 @@ frame2=Frame(sidebar)
 frame2.grid(row=2,column=0,columnspan=2)
 Checkbutton(frame2,text='清理临时文件',variable=should_cleanup,onvalue='yes',offvalue='no')\
     .grid(row=0,column=0)
-Checkbutton(frame2,text='监视剪切板',variable=watch_clipboard,onvalue='yes',offvalue='no')\
+Checkbutton(frame2,text='监视剪贴板',variable=watch_clipboard,onvalue='yes',offvalue='no')\
     .grid(row=0,column=1) #todo
 
 clipwatcher=ClipWatcher()
