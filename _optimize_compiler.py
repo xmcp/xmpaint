@@ -1,7 +1,7 @@
 #coding=utf-8
 import sys
 if sys.version[0]=='2':
-    os.system('start c:/python34/pythonw.exe '+sys.argv[0])
+    os.system('start c:/python34/python.exe '+sys.argv[0])
     sys.exit(-1)
 
 import subprocess

@@ -8,6 +8,9 @@ if len(sys.argv)==1:
 setup(name='xmpaint',
     version='1.0',
     description='xmcp',
+    options={'build_exe': {
+        'optimize': 2,
+    }},
     executables=[Executable("xmpaint.pyw",base='Win32GUI')])
 
 shutil.rmtree('build/exe.win32-3.4/tcl/tzdata')
