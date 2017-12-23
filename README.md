@@ -30,4 +30,4 @@
 - 记忆化搜索（调用顺序为邻接表）
 ……
 
-[→ Windows 打包版本下载](http://s.xmcp.ml/xmpaint.7z) [→ 详细的说明说明](DOCS.md)
+[→ Windows 打包版本下载](http://s.xmcp.ml/xmpaint.7z) [→ 详细的使用说明](DOCS.md)
