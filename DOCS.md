@@ -116,4 +116,4 @@ C:\Users\example\Desktop>
 
 - <kbd>Shift+1</kbd> = `!`；<kbd>Shift+2</kbd> = `@`；<kbd>Shift+3</kbd> = `#`。
 - 取消选中“清理临时文件”后，将会在 `output` 目录保留生成的 GraphViz 文件和图片文件。
-- `dot` 引擎适合 Splay、后缀自动机等有明显父子关系的图。`fdp` 和 `sfdp` 适合那些看着就像图的图（比如网络流的图）。
+- `dot` 引擎适合 Splay、自动机、特意建图之后的网络流、搜索树等有明显父子关系的图。`fdp` 和 `sfdp` 适合那些看着就像图的图（比如杂乱无章的网络流和最短路等）。`circo` 适合边数远多于点数的图。

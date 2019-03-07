@@ -2,7 +2,7 @@
 **OI 业界良心系列 之 秒杀mspaint的画图工具**
 
 
-基于 graphviz 黑科技，直接以邻接表的形式输入一张图就能把它画出来：
+基于 graphviz 二次开发，直接以邻接表的形式输入一张图就能把它画出来：
 
 ![image](https://cloud.githubusercontent.com/assets/6646473/24803987/8fc90a36-1bdf-11e7-8473-f146663af91e.png)
 
@@ -30,4 +30,6 @@
 - 记忆化搜索（调用顺序为邻接表）
 ……
 
-[→ Windows 打包版本下载](http://s.xmcp.ml/xmpaint.7z) [→ 详细的使用说明](DOCS.md)
+[→ Windows 打包版本下载](http://s.xmcp.ml/xmpaint.7z)
+
+[→ 详细的使用说明](DOCS.md)
