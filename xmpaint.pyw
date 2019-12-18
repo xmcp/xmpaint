@@ -16,6 +16,7 @@ class GraphWiz:
     def __init__(self,directed,nicktxt):
         self.directed=directed
         self.output=['%s A{\n'%('digraph' if directed else 'graph'),'node[fontname="黑体"]; edge[fontname="黑体"];']
+        self.node_hl_output=[]
         self.edge_hl=set()
         self.nicks={self.esc(k):v for x in nicktxt.split('\n') if x for k,_,v in [x.partition(' ')]}
     
@@ -31,7 +32,7 @@ class GraphWiz:
             self.edge_hl.add((b,a))
             
     def highlight_node(self,a):
-        self.output.append('"%s"[color="black",fillcolor="greenyellow",style="bold,filled"];\n'%\
+        self.node_hl_output.append('"%s"[color="black",fillcolor="greenyellow",style="bold,filled"];\n'%\
             self.getnick(a,isedge=False))
             
     def addedge(self,a,b,label=None):
@@ -51,7 +52,7 @@ class GraphWiz:
                 self.output.append(fstr+';\n')
 
     def result(self):
-        return ''.join(self.output+['}'])
+        return ''.join(self.output+self.node_hl_output+['}'])
                 
 def buildraw(*_):
     compiler=compilervar.get()
